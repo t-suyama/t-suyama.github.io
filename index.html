@@ -13,7 +13,7 @@
 	<div id="app">
 		<v-app>
 			<v-app-bar title="ホゲホゲ">
-				<v-btn @click="paused = !paused " icon="mdi-plus"></v-btn>
+				<v-btn @click="paused = !paused " icon="mdi-plus" color="primary"></v-btn>
 			</v-app-bar>
 		    <v-footer
 		      color="grey"
@@ -22,6 +22,7 @@
 		    ></v-footer>
 			<v-main>
 				<v-container>
+					<template v-if="!paused">
 					<p style="color: red">{{ error }}</p>
 					<p>Last result: <b>{{ result }}</b>{{cameras}}</p>
 					<div style="border: 2px solid black">
@@ -31,6 +32,7 @@
 							@detect="onDetect" 
 							@error="onError"></qrcode-stream>
 					</div>
+					</template>
 				</v-container>
 			</v-main>
 		</v-app>
