@@ -5,6 +5,13 @@
   <title>HOGEHOGE</title>
   <script src="https://cozmo.github.io/jsQR/jsQR.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Ropa+Sans" rel="stylesheet">
+  <link rel="preload" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@3.5.2/dist/vuetify-labs.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.15/dist/vue.global.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vuetify@3.5.2/dist/vuetify.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, minimal-ui, shrink-to-fit=no">
+  
   <style>
     body {
       font-family: 'Ropa Sans', sans-serif;
@@ -54,6 +61,13 @@
   </style>
 </head>
 <body>
+  <div id="app">
+  <v-app>
+    <v-app-bar>
+      <v-app-bar-title>EPO</v-app-bar-title>
+    </v-app-bar>
+    <v-main>
+
   <h1>jsQR Demo</h1>
   <div id="loadingMessage">🎥 Unable to access video stream (please make sure you have a webcam enabled)</div>
   <canvas id="canvas" hidden></canvas>
@@ -116,6 +130,28 @@
       }
       requestAnimationFrame(tick);
     }
+
+  const { createApp } = Vue
+  const { createVuetify } = Vuetify
+  const vuetify = createVuetify()
+  const app = createApp({
+    data: () => ({
+      total:0,
+    }),
+    methods: {
+    },
+    created(){
+    }
+  }
+)
+app.use(vuetify).mount('#app');
+
+
+
+
+    
   </script>
+      </v-main>
+    </v-app>
 </body>
 </html>
