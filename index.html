@@ -13,15 +13,19 @@
 </head>
 <body>
 	<div id="app">
-    <h1>Simple Demo</h1>
+		<v-app>
+			<v-app-bar title="ホゲホゲ"></v-app-bar>
+			<v-main>
+				<v-container>
+				    <p style="color: red">{{ error }}</p>
+				    <p>Last result: <b>{{ result }}</b></p>
+				    <div style="border: 2px solid black">
+				  		<qrcode-stream :track="paintBoundingBox" @detect="onDetect" @error="onError"></qrcode-stream>
+				    </div>
+				</v-container>
+			</v-main>
 
-    <p style="color: red">{{ error }}</p>
-
-    <p>Last result: <b>{{ result }}</b></p>
-
-    <div style="border: 2px solid black">
-  		<qrcode-stream :track="paintBoundingBox" @detect="onDetect" @error="onError"></qrcode-stream>
-    </div>
+		</v-app>
 	</div>
 </body>
 <script>
