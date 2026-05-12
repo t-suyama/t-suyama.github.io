@@ -42,7 +42,8 @@ const result = ref('')
 const error = ref('')
 const cameras = ref(true);
 function togle (){
-	cameras = !cameras ;
+	cameras.value = !cameras.value
+	console.log(cameras)
 }
 function paintBoundingBox(detectedCodes, ctx) {
 	for (const detectedCode of detectedCodes) {
