@@ -12,7 +12,9 @@
 <body>
 	<div id="app">
 		<v-app>
-			<v-app-bar title="ホゲホゲ"></v-app-bar>
+			<v-app-bar title="ホゲホゲ">
+				<v-btn @click="togle"></v-btn>
+			</v-app-bar>
 		    <v-footer
 		      color="grey"
 		      height="44"
@@ -20,11 +22,13 @@
 		    ></v-footer>
 			<v-main>
 				<v-container>
-				    <p style="color: red">{{ error }}</p>
-				    <p>Last result: <b>{{ result }}</b></p>
-				    <div style="border: 2px solid black">
-				  		<qrcode-stream :track="paintBoundingBox" @detect="onDetect" @error="onError"></qrcode-stream>
-				    </div>
+					<template v-if="cameras">
+					    <p style="color: red">{{ error }}</p>
+					    <p>Last result: <b>{{ result }}</b></p>
+					    <div style="border: 2px solid black">
+					  		<qrcode-stream :track="paintBoundingBox" @detect="onDetect" @error="onError"></qrcode-stream>
+					    </div>
+					</template>
 				</v-container>
 			</v-main>
 		</v-app>
@@ -36,6 +40,10 @@ const { createVuetify } = Vuetify
 const vuetify = createVuetify()
 const result = ref('')
 const error = ref('')
+const cameras = ref(true);
+function togle (){
+	cameras = !cameras ;
+}
 function paintBoundingBox(detectedCodes, ctx) {
 	for (const detectedCode of detectedCodes) {
 		const {
@@ -76,7 +84,7 @@ function onDetect(detectedCodes) {
 
 const app = createApp({
 	setup() {
-	  return { result, error, onDetect, onError, paintBoundingBox }
+	  return { result, error, onDetect, onError, paintBoundingBox, cameras }
 	}
 })
 app.use(vuetify)
