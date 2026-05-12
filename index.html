@@ -13,7 +13,7 @@
 	<div id="app">
 		<v-app>
 			<v-app-bar title="ホゲホゲ">
-				<v-btn @click="togle">カメラ</v-btn>
+				<v-btn @click="cameras=!cameras">カメラ</v-btn>
 			</v-app-bar>
 		    <v-footer
 		      color="grey"
@@ -41,10 +41,6 @@ const vuetify = createVuetify()
 const result = ref('')
 const error = ref('')
 const cameras = ref(true);
-function togle (){
-	cameras.value = !cameras.value
-	console.log(cameras)
-}
 function paintBoundingBox(detectedCodes, ctx) {
 	for (const detectedCode of detectedCodes) {
 		const {
