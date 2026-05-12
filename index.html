@@ -1,150 +1,79 @@
-
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>HOGEHOGE</title>
-  <script src="https://cozmo.github.io/jsQR/jsQR.js"></script>
-  <link href="https://fonts.googleapis.com/css?family=Ropa+Sans" rel="stylesheet">
-  <link rel="preload" as="style" onload="this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@3.5.2/dist/vuetify-labs.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.15/dist/vue.global.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vuetify@3.5.2/dist/vuetify.min.js"></script>
-  
-  <style>
-    body {
-      font-family: 'Ropa Sans', sans-serif;
-      color: #333;
-      max-width: 640px;
-      margin: 0 auto;
-      position: relative;
-    }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    #githubLink {
-      position: absolute;
-      right: 0;
-      top: 12px;
-      color: #2D99FF;
-    }
+  <title>Simple Demo</title>
 
-    h1 {
-      margin: 10px 0;
-      font-size: 40px;
-    }
-
-    #loadingMessage {
-      text-align: center;
-      padding: 40px;
-      background-color: #eee;
-    }
-
-    #canvas {
-      width: 100%;
-    }
-
-    #output {
-      margin-top: 20px;
-      background: #eee;
-      padding: 10px;
-      padding-bottom: 0;
-    }
-
-    #output div {
-      padding-bottom: 10px;
-      word-wrap: break-word;
-    }
-
-    #noQRFound {
-      text-align: center;
-    }
-  </style>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/vue-qrcode-reader@5/dist/vue-qrcode-reader.umd.js"></script>
 </head>
 <body>
-  <div id="app">
-    <v-app>
-      <v-app-bar>
-        <v-app-bar-title>DS</v-app-bar-title>
-      </v-app-bar>
-      <v-main>
-        <h1>jsQR Demo</h1>
-        <div id="loadingMessage">🎥 Unable to access video stream (please make sure you have a webcam enabled)</div>
-        <canvas id="canvas"></canvas>
-        <div id="output">
-          <div id="outputMessage">No QR code detected.</div>
-          <div hidden><b>Data:</b> <span id="outputData"></span></div>
-        </div>
-      </v-main>
-    </v-app>
-  </div>
-   <script>
-    var video = document.createElement("video");
-    var canvasElement = document.getElementById("canvas");
-    var canvas = canvasElement.getContext("2d");
-    var loadingMessage = document.getElementById("loadingMessage");
-    var outputContainer = document.getElementById("output");
-    var outputMessage = document.getElementById("outputMessage");
-    var outputData = document.getElementById("outputData");
+	<div id="app">
+    <h1>Simple Demo</h1>
 
-    function drawLine(begin, end, color) {
-      canvas.beginPath();
-      canvas.moveTo(begin.x, begin.y);
-      canvas.lineTo(end.x, end.y);
-      canvas.lineWidth = 4;
-      canvas.strokeStyle = color;
-      canvas.stroke();
-    }
+    <p style="color: red">{{ error }}</p>
 
-    // Use facingMode: environment to attemt to get the front camera on phones
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-      video.srcObject = stream;
-      video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-      video.play();
-      requestAnimationFrame(tick);
-    });
+    <p>Last result: <b>{{ result }}</b></p>
 
-    function tick() {
-      loadingMessage.innerText = "⌛ Loading video..."
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        loadingMessage.hidden = true;
-        canvasElement.hidden = false;
-        outputContainer.hidden = false;
-
-        canvasElement.height = video.videoHeight;
-        canvasElement.width = video.videoWidth;
-        canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
-        var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
-        var code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: "dontInvert",
-        });
-        if (code) {
-          drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
-          drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
-          drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
-          drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
-          outputMessage.hidden = true;
-          outputData.parentElement.hidden = false;
-          outputData.innerText = code.data;
-        } else {
-          outputMessage.hidden = false;
-          outputData.parentElement.hidden = true;
-        }
-      }
-      requestAnimationFrame(tick);
-    }
-/*
-    const { createApp } = Vue
-    const { createVuetify } = Vuetify
-    const vuetify = createVuetify()
-    const app = createApp({
-      data: () => ({
-        total:0,
-      }),
-      methods: {
-      },
-      created(){
-      }
-    })
-    app.use(vuetify).mount('#app');*/
-  </script>
+    <div style="border: 2px solid black">
+  		<qrcode-stream :track="paintBoundingBox" @detect="onDetect" @error="onError"></qrcode-stream>
+    </div>
+	</div>
 </body>
+<script>
+  const { createApp, ref } = Vue
+
+  const result = ref('')
+  const error = ref('')
+
+  function paintBoundingBox(detectedCodes, ctx) {
+    for (const detectedCode of detectedCodes) {
+      const {
+        boundingBox: { x, y, width, height }
+      } = detectedCode
+
+      ctx.lineWidth = 2
+      ctx.strokeStyle = '#007bff'
+      ctx.strokeRect(x, y, width, height)
+    }
+  }
+
+  function onError(err) {
+    error.value = `[${err.name}]: `
+
+    if (err.name === 'NotAllowedError') {
+      error.value += 'you need to grant camera access permission'
+    } else if (err.name === 'NotFoundError') {
+      error.value += 'no camera on this device'
+    } else if (err.name === 'NotSupportedError') {
+      error.value += 'secure context required (HTTPS, localhost)'
+    } else if (err.name === 'NotReadableError') {
+      error.value += 'is the camera already in use?'
+    } else if (err.name === 'OverconstrainedError') {
+      error.value += 'installed cameras are not suitable'
+    } else if (err.name === 'StreamApiNotSupportedError') {
+      error.value += 'Stream API is not supported in this browser'
+    } else if (err.name === 'InsecureContextError') {
+      error.value += 'Camera access is only permitted in secure context. Use HTTPS or localhost rather than HTTP.'
+    } else {
+      error.value += err.message
+    }
+  }
+
+  function onDetect(detectedCodes) {
+    result.value = JSON.stringify(
+      detectedCodes.map(code => code.rawValue)
+    )
+  }
+
+  const app = createApp({
+    setup() {
+      return { result, error, onDetect, onError, paintBoundingBox }
+    }
+  })
+  app.use(VueQrcodeReader)
+  app.mount('#app')
+</script>
 </html>
