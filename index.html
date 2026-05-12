@@ -61,24 +61,22 @@
 </head>
 <body>
   <div id="app">
-  <v-app>
-    <v-app-bar>
-      <v-app-bar-title>EPO</v-app-bar-title>
-    </v-app-bar>
-    <v-main>
-      <h1>jsQR Demo</h1>
-      <div id="loadingMessage">🎥 Unable to access video stream (please make sure you have a webcam enabled)</div>
-      <canvas id="canvas" hidden></canvas>
-      <div id="output" hidden>
-        <div id="outputMessage">No QR code detected.</div>
-        <div hidden><b>Data:</b> <span id="outputData"></span></div>
-      </div>
+    <v-app>
+      <v-app-bar>
+        <v-app-bar-title>EPO</v-app-bar-title>
+      </v-app-bar>
+      <v-main>
+        <h1>jsQR Demo</h1>
+        <div id="loadingMessage">🎥 Unable to access video stream (please make sure you have a webcam enabled)</div>
+        <canvas id="canvas" hidden></canvas>
+        <div id="output" hidden>
+          <div id="outputMessage">No QR code detected.</div>
+          <div hidden><b>Data:</b> <span id="outputData"></span></div>
+        </div>
       </v-main>
     </v-app>
-
-
-    
-  <script>
+  </div>
+   <script>
     var video = document.createElement("video");
     var canvasElement = document.getElementById("canvas");
     var canvas = canvasElement.getContext("2d");
@@ -134,25 +132,19 @@
       requestAnimationFrame(tick);
     }
 
-  const { createApp } = Vue
-  const { createVuetify } = Vuetify
-  const vuetify = createVuetify()
-  const app = createApp({
-    data: () => ({
-      total:0,
-    }),
-    methods: {
-    },
-    created(){
-    }
-  }
-)
-app.use(vuetify).mount('#app');
-
-
-
-
-    
+    const { createApp } = Vue
+    const { createVuetify } = Vuetify
+    const vuetify = createVuetify()
+    const app = createApp({
+      data: () => ({
+        total:0,
+      }),
+      methods: {
+      },
+      created(){
+      }
+    })
+    app.use(vuetify).mount('#app');
   </script>
 </body>
 </html>
