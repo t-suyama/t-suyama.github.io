@@ -7,46 +7,67 @@
 	<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 	<script src="https://unpkg.com/vue-qrcode-reader@5/dist/vue-qrcode-reader.umd.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/vuetify@4.0.7/dist/vuetify.min.js"></script>
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuetify@4.0.7/dist/vuetify.min.css">
+  
 </head>
 <body>
 	<div id="app">
 		<v-app>
-			<v-app-bar title="ホゲホゲ4">
+			<v-app-bar>
+        <v-img src="https://www.hmaj.com/image/logo.png"></v-img>
 				<v-btn @click="paused = !paused " icon="mdi-qrcode-scan" color="primary"></v-btn>
 			</v-app-bar>
 		    <v-footer
-		      color="grey"
-		      height="44"
+		      height="80"
+          elevation="5"
 		      app
 		    ></v-footer>
 			<v-main>
 				<v-container>
-					<template v-if="!paused">
-					<p style="color: red">{{ error }}</p>
-					<p>Last result: <b>{{ result }}</b>{{cameras}}</p>
-					<div style="border: 2px solid black">
-						<qrcode-stream
-							:paused="paused"
-							:track="paintBoundingBox"
-							@detect="onDetect" 
-							@error="onError"></qrcode-stream>
-					</div>
-					</template>
+					<v-sheet v-if="!paused">
+            <p style="color: red">{{ error }}</p>
+            <p>Last result: <b>{{ result }}</b></p>
+            <div style="border: 2px solid black">
+              <qrcode-stream
+                :paused="paused"
+                :track="paintBoundingBox"
+                @detect="onDetect" 
+                @error="onError"></qrcode-stream>
+            </div>
+          </v-sheet>
+          <v-sheet v-else>
+            <v-sheet>
+              <h2>出題会社一覧</h2>
+              <v-skeleton-loader type="image" v-if="data.length == 0"></v-skeleton-loader>
+              <v-card v-for="val in data">
+                <div class="pa-2 d-flex align-center justify-center fill-height">
+                  <img class="" :src="val.imageURL">
+                </div>
+              </v-card>
+            </v-sheet>
+            <v-sheet>
+              <v-img src="https://lh3.googleusercontent.com/pw/AP1GczNsENxLaD1bSTy4iZrJVS65mx3epDpibUnzc_ARoPV8sDYFB3-frGbYWcXYG6jqoQ9a28zzsiyIbR_4vFOSzIb_pid6ffVRjskiwekeBRyL7DYXObyhQ7VYaAubOAimm4CVnzsMi3sRueRWOBSfcgXd=w827-h758-s-no?authuser=0"></v-img>
+            </v-sheet>
+          </v-sheet>
 				</v-container>
-				<v-image src="./dragstoreshowmap.png"></v-image>
 			</v-main>
 		</v-app>
 	</div>
 </body>
 <script>
-const { createApp, ref } = Vue
+const { createApp, ref, onMounted } = Vue
 const { createVuetify } = Vuetify
-const vuetify = createVuetify()
+const vuetify = createVuetify({
+  theme: { defaultTheme: 'light'}
+})
 const result = ref('')
 const error = ref('')
-const paused = ref(false);
+const paused = ref(true)
+const data = ref([])
+const vmode = ref('map')
+
 function paintBoundingBox(detectedCodes, ctx) {
 	for (const detectedCode of detectedCodes) {
 		const {
@@ -79,16 +100,26 @@ function onError(err) {
 	}
 }
 
+
 function onDetect(detectedCodes) {
 	result.value = JSON.stringify(
 	  detectedCodes.map(code => code.rawValue)
 	)
+  console.log(result);
 	paused.value = true
 }
 
 const app = createApp({
 	setup() {
-	  return { result, error, onDetect, onError, paintBoundingBox, paused }
+    onMounted(() => {
+      console.log("getAxios")
+      axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?sid=1297585850')
+        .then((response) => {
+            data.value = response.data;
+          })
+        .catch((error) => console.log(error));
+    });
+	  return { result, error, onDetect, onError, paintBoundingBox, paused, data, vmode }
 	}
 })
 app.use(vuetify)
@@ -96,3 +127,9 @@ app.use(VueQrcodeReader)
 app.mount('#app')
 </script>
 </html>
+
+
+
+
+
+
