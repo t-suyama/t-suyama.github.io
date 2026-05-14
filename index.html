@@ -19,8 +19,15 @@
         <v-img src="https://www.hmaj.com/image/logo.png"></v-img>
 			</v-app-bar>
 			<v-main>
-        <v-progress-linear v-if="data.length == 0" color="primary" indeterminate></v-progress-linear>
-				<v-container  v-else="data.length != 0">
+		        <template v-if="data.length == 0">
+		          <v-progress-linear  color="primary" indeterminate></v-progress-linear>
+		          <v-sheet class="pa-4 text-center mx-auto" height="500" width="100%" >
+		            <v-progress-circular color="light-blue-lighten-5" indeterminate size="200" width="20"></v-progress-circular>
+		            <div class="ma-4">データ読み込み中。<br>しばらくお待ち下さい。</div>
+		          </v-sheet>
+		        </template>
+				<v-container v-else>
+				
 					<v-sheet v-if="vmode=='qr'">
             <h2>QRコード読み込み</h2>
             <p style="color: red">{{ error }}</p>
