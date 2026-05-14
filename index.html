@@ -19,18 +19,18 @@
         <v-img src="https://www.hmaj.com/image/logo.png"></v-img>
 			</v-app-bar>
 			<v-main>
-				<v-container>
+        <v-progress-linear v-if="data.length == 0" color="primary" indeterminate></v-progress-linear>
+				<v-container  v-else="data.length != 0">
 					<v-sheet v-if="vmode=='qr'">
             <h2>QRコード読み込み</h2>
             <p style="color: red">{{ error }}</p>
-            <p>Last result: <b>{{ result }}</b></p>
+            <p><b>{{ result }}</b></p>
             <v-sheet>
               <qrcode-stream
                 :paused="paused"
                 :track="paintBoundingBox"
                 @detect="onDetect" 
                 @error="onError"></qrcode-stream>
-              
               <v-list>
                 <v-list-item v-for="(val,i) in data" :value="val.UUID" :key="i" @click="selectQuestion(val.UUID)">
                   {{i}}:{{val.name}}
@@ -41,33 +41,83 @@
           <v-sheet v-else>
             <v-sheet v-if="vmode=='list'">
               <h2>出題会社一覧</h2>
-              <v-skeleton-loader type="image" v-if="data.length == 0"></v-skeleton-loader>
               <v-list v-for="val in data">
                 <v-list-item class="pa-2">
-                  <template v-if="ansers[val.uuid]" v-slot:append>
-                    <v-icon icon="mdi-check-bold" color="primary"></v-icon>
+                  <v-list-item-title>{{val.name}}</v-list-item-title>
+                  <template v-if="ansers[val.UUID]" v-slot:append>
+                    <v-icon :icon="(ansers[val.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[val.UUID].ca)? 'success':'red'"></v-icon>
                   </template>
-                  <img height="44" :src="val.imageURL">
                 </v-list-item>
               </v-list>
             </v-sheet>
             <v-sheet v-else-if="vmode=='map'">
-              <v-skeleton-loader type="image" v-if="data.length == 0"></v-skeleton-loader>
-              <v-img src="https://lh3.googleusercontent.com/pw/AP1GczNsENxLaD1bSTy4iZrJVS65mx3epDpibUnzc_ARoPV8sDYFB3-frGbYWcXYG6jqoQ9a28zzsiyIbR_4vFOSzIb_pid6ffVRjskiwekeBRyL7DYXObyhQ7VYaAubOAimm4CVnzsMi3sRueRWOBSfcgXd=w827-h758-s-no?authuser=0"></v-img>
+              <v-img src="https://t-suyama.github.io/dragstoreshowmap.png"></v-img>
               <v-card>
                 <div class="pa-4">マップにあるクイズ出題企業の出展場所でバーコードを読み、クイズに答えてください。バーコードを読むときは下メニューのQRコードのアイコンをクリックしてください。</div>
               </v-card>
             </v-sheet>
             <v-sheet v-else>
               <h2>回答結果</h2>
-              
+              <v-sheet
+                class="pa-4 text-center mx-auto"
+                elevation="4"
+                max-width="600"
+                rounded="lg"
+                width="100%"
+              >
+                <v-icon
+                  v-if="cacnt==data.length"
+                  class="mb-5"
+                  color="success"
+                  icon="mdi-check-circle"
+                  size="112"
+                ></v-icon>
+                <h2 class="text-headline-small mt-0 mb-6">
+                  <template v-if="cacnt==data.length">
+                    全問正解！
+                  </template>
+                  <template v-else>
+                    {{data.length}}問中、{{cacnt}}問正解
+                  </template>
+                </h2>
+                <v-dialog v-if="giftflg && cacnt==data.length">
+                  <template v-slot:activator="{ props: activatorProps }">
+                    <v-btn
+                      v-bind="activatorProps"
+                      color="success"
+                      text="景品の受領はこちらを表示してください"
+                      variant="flat"
+                    ></v-btn>
+                  </template>
+                  <template v-slot:default="{ isActive }">
+                    <v-card title="Dialog">
+                      <v-card-text class="text-center mx-auto">
+                        <v-icon class="mb-5" color="pink" icon="mdi-gift" size="112"></v-icon>
+                        <div>全問正解おめでとうございます。この画面を提示して景品を受領してください。</div>
+                      </v-card-text>
+
+                      <v-card-actions>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                          color="primary"
+                          text="受領しました"
+                          @click="giftReceipt"
+                        ></v-btn>
+                        <v-btn
+                          text="閉じる"
+                          @click="isActive.value = false"
+                        ></v-btn>
+                      </v-card-actions>
+                    </v-card>
+                  </template>
+                </v-dialog>
+              </v-sheet>
             </v-sheet>
           </v-sheet>
 				</v-container>
         <v-dialog
           v-model="qDialog"
-          width="auto"
-        >
+          width="auto">
           <v-card
             prepend-icon="mdi-update"
             title="クイズに答えてください"
@@ -83,7 +133,7 @@
                 color="primary">
                 <v-list-item-title>{{i}}. {{nowQuestion['A'+i]}}</v-list-item-title>
                 <template v-if="ansers[nowQuestion.UUID] && ansers[nowQuestion.UUID].ans == 'A'+i" v-slot:append>
-                  <v-icon :icon="(ansers[nowQuestion.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[nowQuestion.UUID].ca)? 'green':'red'"></v-icon>
+                  <v-icon :icon="(ansers[nowQuestion.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[nowQuestion.UUID].ca)? 'success':'red'"></v-icon>
                 </template>
               </v-list-item>
             </v-list>
@@ -91,7 +141,7 @@
               <v-spacer></v-spacer>
               <v-btn
                 text="閉じる"
-                @click="qDialog=false"
+                @click="qDialog=false;paused=false"
               ></v-btn>
             </v-card-actions>
           </v-card>
@@ -115,7 +165,6 @@
           <span>SCORE</span>
         </v-btn>
       </v-bottom-navigation>
-
 		</v-app>
 	</div>
 </body>
@@ -134,7 +183,27 @@ const vmode = ref('map')
 const ansers = ref({})
 const nowQuestion = ref({})
 const qDialog = ref(false)
+const cacnt = ref(0)
+const giftflg = ref(true)
+let uuid,sid;
 
+function giftReceipt(){
+  giftflg.value = false;
+  localStorage.setItem("DSSQuizGift", "2026");
+  let res = axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?gift=1&sid='+sid+"&uuid="+uuid)
+              .then(() => { console.log(res)})
+              .catch(err => { console.log("err:", err);});
+}
+
+function resetCacnt (){
+  let cnt = 0;
+  for(ans in ansers.value){
+    if(ansers.value[ans].ca){
+      cnt ++;
+    }
+  }
+  cacnt.value = cnt;
+}
 function checkAnser(a){
   console.log(a);
   setTimeout(() => {
@@ -143,6 +212,7 @@ function checkAnser(a){
       ca : (nowQuestion.value.CA == a )? true : false,
     }
     console.log(ansers.value);
+    resetCacnt();
     localStorage.setItem("DSSQuiz", JSON.stringify(ansers.value));
   },1000)
 }
@@ -208,12 +278,16 @@ const app = createApp({
     onMounted(() => {
       console.log("getAxios");
       let params = new URLSearchParams(document.location.search);
-      let sid = params.get("sid");
+      sid = params.get("sid");
       console.log(sid);
-      if(! sid){
-        sid = 1297585850;
+      if(localStorage.getItem("DSSUUID")){
+        uuid = localStorage.getItem("DSSUUID");
+      }else{
+        uuid = crypto.randomUUID();
+        localStorage.setItem("DSSUUID", uuid);
       }
-      axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?sid='+sid)
+      console.log(uuid);
+      axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?gift=0&sid='+sid+"&uuid="+uuid)
         .then((response) => {
             data.value = response.data;
             console.log(data.value);
@@ -221,7 +295,13 @@ const app = createApp({
         .catch((error) => console.log(error));
       if(localStorage.getItem("DSSQuiz")){
         ansers.value = JSON.parse(localStorage.getItem("DSSQuiz"));
+        resetCacnt();
       }
+      let gift = localStorage.getItem("DSSQuizGift")
+      if( gift =="2026"){
+        giftflg.value = false;
+      }
+
     });
 	  return {
         result,
@@ -237,6 +317,9 @@ const app = createApp({
         selectQuestion,
         qDialog,
         checkAnser,
+        cacnt,
+        giftflg,
+        giftReceipt,
       }
 	}
 })
@@ -245,9 +328,3 @@ app.use(VueQrcodeReader)
 app.mount('#app')
 </script>
 </html>
-
-
-
-
-
-
