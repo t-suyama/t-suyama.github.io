@@ -17,42 +17,104 @@
 		<v-app>
 			<v-app-bar>
         <v-img src="https://www.hmaj.com/image/logo.png"></v-img>
-				<v-btn @click="paused = !paused " icon="mdi-qrcode-scan" color="primary"></v-btn>
 			</v-app-bar>
-		    <v-footer
-		      height="80"
-          elevation="5"
-		      app
-		    ></v-footer>
 			<v-main>
 				<v-container>
-					<v-sheet v-if="!paused">
+					<v-sheet v-if="vmode=='qr'">
+            <h2>QRコード読み込み</h2>
             <p style="color: red">{{ error }}</p>
             <p>Last result: <b>{{ result }}</b></p>
-            <div style="border: 2px solid black">
+            <v-sheet>
               <qrcode-stream
                 :paused="paused"
                 :track="paintBoundingBox"
                 @detect="onDetect" 
                 @error="onError"></qrcode-stream>
-            </div>
+              
+              <v-list>
+                <v-list-item v-for="(val,i) in data" :value="val.UUID" :key="i" @click="selectQuestion(val.UUID)">
+                  {{i}}:{{val.name}}
+                </v-list-item>
+              </v-list>
+            </v-sheet>
           </v-sheet>
           <v-sheet v-else>
-            <v-sheet>
+            <v-sheet v-if="vmode=='list'">
               <h2>出題会社一覧</h2>
               <v-skeleton-loader type="image" v-if="data.length == 0"></v-skeleton-loader>
-              <v-card v-for="val in data">
-                <div class="pa-2 d-flex align-center justify-center fill-height">
-                  <img class="" :src="val.imageURL">
-                </div>
+              <v-list v-for="val in data">
+                <v-list-item class="pa-2">
+                  <template v-if="ansers[val.uuid]" v-slot:append>
+                    <v-icon icon="mdi-check-bold" color="primary"></v-icon>
+                  </template>
+                  <img height="44" :src="val.imageURL">
+                </v-list-item>
+              </v-list>
+            </v-sheet>
+            <v-sheet v-else-if="vmode=='map'">
+              <v-img src="https://lh3.googleusercontent.com/pw/AP1GczNsENxLaD1bSTy4iZrJVS65mx3epDpibUnzc_ARoPV8sDYFB3-frGbYWcXYG6jqoQ9a28zzsiyIbR_4vFOSzIb_pid6ffVRjskiwekeBRyL7DYXObyhQ7VYaAubOAimm4CVnzsMi3sRueRWOBSfcgXd=w827-h758-s-no?authuser=0"></v-img>
+              <v-card>
+                <div class="pa-4">マップにあるクイズ出題企業の出展場所でバーコードを読み、クイズに答えてください。バーコードを読むときは下メニューのQRコードのアイコンをクリックしてください。</div>
               </v-card>
             </v-sheet>
-            <v-sheet>
-              <v-img src="https://lh3.googleusercontent.com/pw/AP1GczNsENxLaD1bSTy4iZrJVS65mx3epDpibUnzc_ARoPV8sDYFB3-frGbYWcXYG6jqoQ9a28zzsiyIbR_4vFOSzIb_pid6ffVRjskiwekeBRyL7DYXObyhQ7VYaAubOAimm4CVnzsMi3sRueRWOBSfcgXd=w827-h758-s-no?authuser=0"></v-img>
+            <v-sheet v-else>
+              <h2>回答結果</h2>
+              
             </v-sheet>
           </v-sheet>
 				</v-container>
+        <v-dialog
+          v-model="qDialog"
+          width="auto"
+        >
+          <v-card
+            prepend-icon="mdi-update"
+            title="クイズに答えてください"
+            class="pa-2"
+            rounded>
+            <h3><v-img height="30" :src="nowQuestion.imageURL"></v-img>{{nowQuestion.name}}</h3>
+            <v-card :text="nowQuestion.Q"></v-card>
+            <v-list>
+              <v-list-item v-for="i in 5" 
+                :value="'A'+i" 
+                :key="i" 
+                @click="checkAnser('A'+i)" 
+                color="primary">
+                <v-list-item-title>{{i}}. {{nowQuestion['A'+i]}}</v-list-item-title>
+                <template v-if="ansers[nowQuestion.UUID] && ansers[nowQuestion.UUID].ans == 'A'+i" v-slot:append>
+                  <v-icon :icon="(ansers[nowQuestion.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[nowQuestion.UUID].ca)? 'primary':'red'"></v-icon>
+                </template>
+              </v-list-item>
+            </v-list>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                text="閉じる"
+                @click="qDialog=false"
+              ></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
 			</v-main>
+      <v-bottom-navigation v-model="vmode" color="primary" active>
+        <v-btn value="map">
+          <v-icon>mdi-map</v-icon>
+          <span>MAP</span>
+        </v-btn>
+        <v-btn value="qr" @click="paused=false">
+          <v-icon>mdi-qrcode-scan</v-icon>
+          <span>QR SCAN</span>
+        </v-btn>
+        <v-btn value="list">
+          <v-icon>mdi-format-list-bulleted</v-icon>
+          <span>LIST</span>
+        </v-btn>
+        <v-btn value="score">
+          <v-icon>mdi-check-circle</v-icon>
+          <span>SCORE</span>
+        </v-btn>
+      </v-bottom-navigation>
+
 		</v-app>
 	</div>
 </body>
@@ -67,6 +129,27 @@ const error = ref('')
 const paused = ref(true)
 const data = ref([])
 const vmode = ref('map')
+const ansers = ref({})
+const nowQuestion = ref({})
+const qDialog = ref(false)
+
+function checkAnser(a){
+  console.log(a);
+  setTimeout(() => {
+    ansers.value[nowQuestion.value.UUID] = {
+      ans : a,
+      ca : (nowQuestion.value.CA == a )? true : false,
+    }
+    console.log(ansers.value);
+  },1000)
+}
+
+function selectQuestion (UUID){
+  console.log(UUID);
+  nowQuestion.value = data.value.find(val => val.UUID == UUID);
+  console.log(nowQuestion.value);
+  qDialog.value = true;
+}
 
 function paintBoundingBox(detectedCodes, ctx) {
 	for (const detectedCode of detectedCodes) {
@@ -100,13 +183,10 @@ function onError(err) {
 	}
 }
 
-
 function onDetect(detectedCodes) {
-	result.value = JSON.stringify(
-	  detectedCodes.map(code => code.rawValue)
-	)
+	result.value = detectedCodes.map(code => code.rawValue)[0];
   console.log(result.value);
-	paused.value = true
+	paused.value = true;
 }
 
 const app = createApp({
@@ -116,10 +196,25 @@ const app = createApp({
       axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?sid=1297585850')
         .then((response) => {
             data.value = response.data;
+            console.log(data.value);
           })
         .catch((error) => console.log(error));
     });
-	  return { result, error, onDetect, onError, paintBoundingBox, paused, data, vmode }
+	  return {
+        result,
+        error,
+        onDetect,
+        onError,
+        paintBoundingBox,
+        paused,
+        data,
+        vmode,
+        ansers,
+        nowQuestion,
+        selectQuestion,
+        qDialog,
+        checkAnser,
+      }
 	}
 })
 app.use(vuetify)
