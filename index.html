@@ -31,11 +31,6 @@
                 :track="paintBoundingBox"
                 @detect="onDetect" 
                 @error="onError"></qrcode-stream>
-              <v-list>
-                <v-list-item v-for="(val,i) in data" :value="val.UUID" :key="i" @click="selectQuestion(val.UUID)">
-                  {{i}}:{{val.name}}
-                </v-list-item>
-              </v-list>
             </v-sheet>
           </v-sheet>
           <v-sheet v-else>
