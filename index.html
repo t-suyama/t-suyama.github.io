@@ -52,6 +52,7 @@
               </v-list>
             </v-sheet>
             <v-sheet v-else-if="vmode=='map'">
+              <v-skeleton-loader type="image" v-if="data.length == 0"></v-skeleton-loader>
               <v-img src="https://lh3.googleusercontent.com/pw/AP1GczNsENxLaD1bSTy4iZrJVS65mx3epDpibUnzc_ARoPV8sDYFB3-frGbYWcXYG6jqoQ9a28zzsiyIbR_4vFOSzIb_pid6ffVRjskiwekeBRyL7DYXObyhQ7VYaAubOAimm4CVnzsMi3sRueRWOBSfcgXd=w827-h758-s-no?authuser=0"></v-img>
               <v-card>
                 <div class="pa-4">マップにあるクイズ出題企業の出展場所でバーコードを読み、クイズに答えてください。バーコードを読むときは下メニューのQRコードのアイコンをクリックしてください。</div>
@@ -70,7 +71,7 @@
           <v-card
             prepend-icon="mdi-update"
             title="クイズに答えてください"
-            class="pa-2"
+            class="pa-4"
             rounded>
             <h3><v-img height="30" :src="nowQuestion.imageURL"></v-img>{{nowQuestion.name}}</h3>
             <v-card :text="nowQuestion.Q"></v-card>
@@ -82,7 +83,7 @@
                 color="primary">
                 <v-list-item-title>{{i}}. {{nowQuestion['A'+i]}}</v-list-item-title>
                 <template v-if="ansers[nowQuestion.UUID] && ansers[nowQuestion.UUID].ans == 'A'+i" v-slot:append>
-                  <v-icon :icon="(ansers[nowQuestion.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[nowQuestion.UUID].ca)? 'primary':'red'"></v-icon>
+                  <v-icon :icon="(ansers[nowQuestion.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[nowQuestion.UUID].ca)? 'green':'red'"></v-icon>
                 </template>
               </v-list-item>
             </v-list>
@@ -119,7 +120,7 @@
 	</div>
 </body>
 <script>
-	
+
 const { createApp, ref, onMounted } = Vue
 const { createVuetify } = Vuetify
 const vuetify = createVuetify({
@@ -142,6 +143,7 @@ function checkAnser(a){
       ca : (nowQuestion.value.CA == a )? true : false,
     }
     console.log(ansers.value);
+    localStorage.setItem("DSSQuiz", JSON.stringify(ansers.value));
   },1000)
 }
 
@@ -188,21 +190,38 @@ function onDetect(detectedCodes) {
 	result.value = detectedCodes.map(code => code.rawValue)[0];
   console.log(result.value);
 	paused.value = true;
+
+  let flg = false;
+  data.value.forEach(val=>{
+    if(val.UUID == result.value ){
+      flg = true;
+      selectQuestion (val.UUID);
+    }
+  });
+  if(!flg){
+    result.value = "このコードは有効ではありません:"+result.value;
+  }
 }
 
 const app = createApp({
 	setup() {
     onMounted(() => {
       console.log("getAxios");
-	  let params = new URLSearchParams(document.location.search);
-	  let sid = params.get("sid");
-	  console.log(sid);
+      let params = new URLSearchParams(document.location.search);
+      let sid = params.get("sid");
+      console.log(sid);
+      if(! sid){
+        sid = 1297585850;
+      }
       axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?sid='+sid)
         .then((response) => {
             data.value = response.data;
             console.log(data.value);
           })
         .catch((error) => console.log(error));
+      if(localStorage.getItem("DSSQuiz")){
+        ansers.value = JSON.parse(localStorage.getItem("DSSQuiz"));
+      }
     });
 	  return {
         result,
