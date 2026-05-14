@@ -119,6 +119,7 @@
 	</div>
 </body>
 <script>
+	
 const { createApp, ref, onMounted } = Vue
 const { createVuetify } = Vuetify
 const vuetify = createVuetify({
@@ -192,8 +193,11 @@ function onDetect(detectedCodes) {
 const app = createApp({
 	setup() {
     onMounted(() => {
-      console.log("getAxios")
-      axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?sid=1297585850')
+      console.log("getAxios");
+	  let params = new URLSearchParams(document.location.search);
+	  let sid = params.get("sid");
+	  console.log(sid);
+      axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?sid='+sid)
         .then((response) => {
             data.value = response.data;
             console.log(data.value);
