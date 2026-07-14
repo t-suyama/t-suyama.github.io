@@ -203,6 +203,24 @@ const cacnt = ref(0)
 const giftflg = ref(true)
 let uuid,sid;
 
+function checkNowQuestion(){
+  console.log("checkNowQuestion");
+  if(localStorage.getItem("DSSQuiz")){
+    console.log("checkNowQuestion");
+    let qids = data.value.map( (val) => val.UUID );
+    let ans = JSON.parse(localStorage.getItem("DSSQuiz"));
+    let newObj = {};
+    qids.forEach(qid =>{
+      if(ans[qid]){
+        newObj[qid] = ans[qid];
+      }
+    });
+    localStorage.setItem("DSSQuiz",JSON.stringify(newObj));
+    ansers.value = newObj;
+    resetCacnt();    
+  }
+}
+
 function giftReceipt(){
   giftflg.value = false;
   localStorage.setItem("DSSQuizGift", "2026");
@@ -307,12 +325,13 @@ const app = createApp({
         .then((response) => {
             data.value = response.data;
             console.log(data.value);
+			checkNowQuestion();
           })
         .catch((error) => console.log(error));
-      if(localStorage.getItem("DSSQuiz")){
+/*      if(localStorage.getItem("DSSQuiz")){
         ansers.value = JSON.parse(localStorage.getItem("DSSQuiz"));
         resetCacnt();
-      }
+      }*/
       let gift = localStorage.getItem("DSSQuizGift")
       if( gift =="2026"){
         giftflg.value = false;
