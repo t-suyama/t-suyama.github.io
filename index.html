@@ -132,13 +132,13 @@
 				</v-container>
         <v-dialog
           v-model="qDialog"
-          width="auto">
+          max-width="500">
           <v-card
             prepend-icon="mdi-update"
             title="クイズに答えてください"
             class="pa-4"
             rounded>
-            <h3><v-img height="30" :src="nowQuestion.imageURL"></v-img>{{nowQuestion.name}}</h3>
+            <h3><v-img width="100%" :src="nowQuestion.imageURL"></v-img>{{nowQuestion.name}}</h3>
             <v-card :text="nowQuestion.Q"></v-card>
             <v-list>
               <v-list-item v-for="i in 5" 
