@@ -140,7 +140,7 @@
 			<v-img width="100%" :src="nowQuestion.imageURL"></v-img>
             <h3>{{nowQuestion.name}}</h3>
             <v-card :text="nowQuestion.Q"></v-card>
-            <v-list>
+            <v-list class="overflow-y-auto">
               <v-list-item v-for="i in 5" 
                 :value="'A'+i" 
                 :key="i" 
