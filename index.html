@@ -43,15 +43,15 @@
           <v-sheet v-else>
             <v-sheet v-if="vmode=='list'">
               <h2>出題会社一覧</h2>
-              <v-list v-for="val in data">
-                <v-list-item class="pa-2">
-                  <v-list-item-title>{{val.name}}</v-list-item-title>
-                  <template v-if="ansers[val.UUID]" v-slot:append>
-                    <v-icon :icon="(ansers[val.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[val.UUID].ca)? 'success':'red'"></v-icon>
-                  </template>
-                </v-list-item>
-              </v-list>
-            </v-sheet>
+              <v-card class="pa-2 ma-1 float-left" width="220" v-for="val in data" 
+                :title="val.name" 
+                :subtitle="'ブースNo. '+val.boothNo">
+                <template v-if="ansers[val.UUID]" v-slot:append>
+                  <v-icon size="large" :icon="(ansers[val.UUID].ca)? 'mdi-check-circle-outline':'mdi-alert-circle-outline'" :color="(ansers[val.UUID].ca)? 'success':'red'"></v-icon>
+                </template>
+                <v-img width="100%":src="val.imageURL"></v-img>
+              </v-card>			
+			</v-sheet>
             <v-sheet v-else-if="vmode=='map'">
               <v-img src="https://t-suyama.github.io/images/2026DragStoreShowMap.png"></v-img>
               <v-card>
