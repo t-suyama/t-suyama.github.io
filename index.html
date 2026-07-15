@@ -221,7 +221,7 @@ function checkNowQuestion(){
 
 function giftReceipt(){
   giftflg.value = false;
-  localStorage.setItem("DSSQuizGift", "2026");
+  localStorage.setItem("DSSQuizGift", sid+"" );
   let res = axios.get('https://script.google.com/macros/s/AKfycbz9JPt21XZ1OdBlbqiqx1Lv-jdiicKCIX2CqfY5CvkETFdVqLJbw-LGVyYCTRWVjeCY/exec?gift=1&sid='+sid+"&uuid="+uuid)
               .then(() => { console.log(res)})
               .catch(err => { console.log("err:", err);});
@@ -331,7 +331,7 @@ const app = createApp({
         resetCacnt();
       }*/
       let gift = localStorage.getItem("DSSQuizGift")
-      if( gift =="2026"){
+      if( gift == sid+""){
         giftflg.value = false;
       }
 
