@@ -31,7 +31,6 @@
 					<v-sheet v-if="vmode=='qr'">
             <h2>QRコード読み込み</h2>
             <p style="color: red">{{ error }}</p>
-            <p><b>{{ result }}</b></p>
             <v-sheet>
               <qrcode-stream
                 :paused="paused"
